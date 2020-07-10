@@ -1,10 +1,9 @@
-import { setResultsTitle, transformGroups } from '../../helpers/fipiran.helper.js'
+import { setResultsTitle, transformGroups, transformColumns } from '../../helpers/fipiran.helper.js'
 import { groupWithSameYear } from '../../helpers/dates.helper.js'
 import zip from 'ramda/src/zip.js'
 import head from 'ramda/src/head.js'
 import last from 'ramda/src/last.js'
 import mean from 'ramda/src/mean.js'
-import takeLast from 'ramda/src/takeLast.js'
 import momentJalaali from 'moment-jalaali'
 import { percentIncrease } from '../../helpers/math.helper.js'
 import { variance, covariance} from '../../helpers/math.helper.js'
@@ -66,7 +65,8 @@ export const profitabilityRatios = {
   },
   specialValueReturnRatio (netProfit, specialValue) {
     return {
-      ratio: setResultsTitle(transformGroups([netProfit, specialValue], (first, second) => first / second), 'نسبت بازده ارزش ویژه')
+      ratio: setResultsTitle(transformGroups([netProfit, specialValue], (first, second) => first / second), 'نسبت بازده ارزش ویژه'),
+      desc: 'Return on equity, a measure of the amount of profit earned per dollar of investment. (for measuring performance)'
     }
   },
   assetReturnsRatio (netProfit, totalAssets) {
@@ -100,6 +100,16 @@ export const investmentRatios = {
   propertyRightsRatio (specialValue, totalAssets) {
     return {
       ratio: setResultsTitle(transformGroups([specialValue, totalAssets], (first, second) => first / second), 'نسبت مالکانه')
+    }
+  },
+  leverageAssetsToEquityRatio (totalAssets, specialValue) {
+    return {
+      ratio: setResultsTitle(transformGroups([totalAssets, specialValue], (first, second) => first / second), 'leverageAssetsToEquityRatio')
+    }
+  },
+  normalizeSheet (balanceSheet, sales) {
+    return {
+      normalized: transformColumns(balanceSheet, sales, (first, second) => first / second)
     }
   }
 }

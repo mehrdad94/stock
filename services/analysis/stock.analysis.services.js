@@ -1,4 +1,4 @@
-import { getStockFinancialInfo } from '../scraper.js'
+import { getStockFinancialInfo } from '../scraper_fipiran.js'
 import {
   liquidityRatios,
   activityRatios,
@@ -48,11 +48,25 @@ export const getStockAnalysis = async ({ url }) => {
   const liabilitiesSpecialValueRatio = investmentRatios.liabilitiesSpecialValueRatio(findInBalance('بدهی'), findInBalance('حقوق صاحبان سهام'))
   const currentLiabilitiesSpecialValueRatio = investmentRatios.currentLiabilitiesSpecialValueRatio(findInBalance('بدهی جاری'), findInBalance('حقوق صاحبان سهام'))
   const propertyRightsRatio = investmentRatios.propertyRightsRatio(findInBalance('حقوق صاحبان سهام'), findInBalance('دارایی'))
-
+  const leverageAssetsToEquityRatio = investmentRatios.leverageAssetsToEquityRatio(findInBalance('دارایی'), findInBalance('حقوق صاحبان سهام'))
   // price analysis
   const yearlyReturn = priceAnalysis.yearlyReturn(stockPrices)
   const expectedReturn = priceAnalysis.expectedReturn(stockPrices)
   const beta = priceAnalysis.beta(stockPrices)
+
+  // dupont framework
+  const Dupont = {
+    returnOnEquity: specialValueReturnRatio,
+    profitabilityReturnOnSales: salesReturnsRatio, // how much dollar is profit for 100 dollar sails
+    efficiencyAssetTurnover: assetsTurnoverRatio, // how much dollar will generate with 1 dollar worth of assets
+    leverageAssetsToEquityRatio: leverageAssetsToEquityRatio
+  }
+
+  // normalized balance sheet
+  const normalizeBalanceSheetBySales = investmentRatios.normalizeSheet(balanceSheet, findInIncome('فروش'))
+  const normalizeBalanceSheetByAssets = investmentRatios.normalizeSheet(balanceSheet, findInIncome('دارایی'))
+  const normalizeIncomeStatementBySales = investmentRatios.normalizeSheet(incomeIndex, findInIncome('فروش'))
+  const normalizeIncomeStatementByAssets = investmentRatios.normalizeSheet(incomeIndex, findInIncome('دارایی'))
 
   return {
     liquidityRatios: {
@@ -83,6 +97,13 @@ export const getStockAnalysis = async ({ url }) => {
       yearlyReturn,
       expectedReturn,
       beta
+    },
+    Dupont,
+    normalizedSheets: {
+      normalizeBalanceSheetBySales,
+      normalizeBalanceSheetByAssets,
+      normalizeIncomeStatementBySales,
+      normalizeIncomeStatementByAssets
     }
   }
 }

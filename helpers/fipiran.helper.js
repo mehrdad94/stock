@@ -1,9 +1,9 @@
 // turn string to number
 export const toNumber = s => {
-  let result = s.replace(',', '')
+  let result = s.replace(/,/g, '')
   const isNegative = result.includes('(') ? -1 : 1
 
-  result = result.replace('(', '').replace(')', '')
+  result = result.replace(/\(/g, '').replace(/\)/g, '')
 
   result = parseInt(result)
 
@@ -30,6 +30,32 @@ export const transformGroups = (groups, operation) => {
     Object.keys(groups[0][key]).forEach(key2 => {
       result[key][key2] = operation(...groups.map(group => toNumber(group[key][key2])))
     })
+  })
+
+  return result
+}
+
+export const transformColumns = (base, target, operation) => {
+  const result = {}
+
+  Object.keys(base).forEach(key => {
+    const targetMap = target[key]
+
+    const group = base[key][0]
+
+    result[key] = [group.map(row => {
+      if (row['عنوان'] === 'عنوان') return row
+
+      const result2 = {}
+
+      Object.keys(row).forEach(year => {
+        if (isNaN(toNumber(targetMap[year]))) result2[year] = row[year]
+        else result2[year] = operation(toNumber(row[year]), toNumber(targetMap[year]))
+      })
+
+      return result2
+    })]
+
   })
 
   return result

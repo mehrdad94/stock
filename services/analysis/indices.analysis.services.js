@@ -1,4 +1,4 @@
-import { getIndicesRevenue } from '../scraper.js'
+import { getIndicesRevenue } from '../scraper_fipiran.js'
 import momentJalaali from 'moment-jalaali'
 import { groupWithSameYear } from '../../helpers/dates.helper.js'
 import zip from 'ramda/src/zip.js'
