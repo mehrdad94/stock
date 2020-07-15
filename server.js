@@ -16,9 +16,7 @@ Middleware(app)
 
 // connect to db
 const mongoURL = process.env.MONGO_URL
-mongoose.connect(mongoURL).then(() => {
-  console.log('database connected')
-})
+mongoose.connect(mongoURL)
 
 // controllers
 app.use('/api/finance', financialController)

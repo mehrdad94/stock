@@ -8,8 +8,7 @@ export const companySchema = new Schema({
     required: true
   },
   name: {
-    type: String,
-    required: true
+    type: String
   }
 })
 

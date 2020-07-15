@@ -5,6 +5,14 @@ export default class FinancialErrorService {
     return await FinancialError.findOne(query)
   }
 
+  static async findAll (query) {
+    return await FinancialError.find(query)
+  }
+
+  static async deleteOne (query) {
+    return await FinancialError.deleteOne(query)
+  }
+
   static async create (error) {
     const { letterSerial } = error
 

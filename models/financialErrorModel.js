@@ -4,32 +4,26 @@ const Schema = mongoose.Schema
 
 export const financialSchema = new Schema({
   symbol: {
-    type: String,
-    required: true
+    type: String
   },
   baseURL: {
     type: String,
     required: true
   },
   letterSerial: {
-    type: String,
-    required: true
+    type: String
   },
   incomeStatementLink: {
-    type: String,
-    required: true
+    type: String
   },
   financialStatementLink: {
-    type: String,
-    required: true
+    type: String
   },
   incomeStatement: {
-    type: Schema.Types.Mixed,
-    required: true
+    type: Schema.Types.Mixed
   },
   financialStatement: {
-    type: Schema.Types.Mixed,
-    required: true
+    type: Schema.Types.Mixed
   },
   error: {
     type: String,
@@ -37,4 +31,4 @@ export const financialSchema = new Schema({
   }
 })
 
-export default mongoose.model('financialError', financialSchema, 'financialError')
+export default mongoose.model('financialError', financialSchema, 'financialErrors')

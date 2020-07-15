@@ -4,7 +4,7 @@ import { retry } from './queue.helper.js'
 let browser = null
 const getNewPage = async () => {
   if (!browser) browser = await puppeteer.launch({
-    // headless: true
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   })
 
   return await browser.newPage()
@@ -48,12 +48,13 @@ export const getPageBody = async ({ url }) => {
   return await getPageContent({ url, getter })
 }
 
-export const goToPage = async ({ url }) => {
+export const goToPage = async ({ url, options }) => {
+  if (!options) options = {}
   const page = await getNewPage()
 
   console.log('open', url.toString())
 
-  await retry(() => page.goto(url, {timeout: 30000}), 3)
+  await retry(() => page.goto(url, {...options, timeout: 30000}), 3)
 
   return page
 }

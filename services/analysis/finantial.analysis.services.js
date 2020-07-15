@@ -118,7 +118,7 @@ export const priceAnalysis = {
   yearlyReturn ({ xData, yData }) {
     const groupedData = groupWithSameYear(zip(xData, yData))
     const firstAndLastInGroup = groupedData.map(groupedData => [head(groupedData), last(groupedData)])
-    const returns = firstAndLastInGroup.map(groupedData => [momentJalaali(groupedData[0][0]).jYear(), percentIncrease(groupedData[0][1], groupedData[1][1])] )
+    const returns = firstAndLastInGroup.map(groupedData => [momentJalaali(groupedData[0][0], 'jYYYY/jMM/jDD').jYear(), percentIncrease(groupedData[0][1], groupedData[1][1])] )
     const risk = Math.sqrt(variance(returns.map(item => item[1])))
     const meanFiveReturns = mean(returns.slice(returns.length - 5).map(item => item[1]))
 

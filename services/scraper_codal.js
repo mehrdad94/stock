@@ -34,7 +34,7 @@ export const getCodalFinancialLinks = async ({ symbol }) => {
   const results = []
   while (true) {
     // get links
-    results.push(...await page.evaluate(() => { return $('.letter-title:contains(صورت‌های مالی), .letter-title:contains(صورتهای مالی)').toArray().map(item => ({link: item.href, text: item.innerText})) }))
+    results.push(...await page.evaluate(() => { return $('.letter-title:contains(صورت‌های مالی), .letter-title:contains(صورتهای مالی)').toArray().map(item => item.href) }))
 
     const disabledNextButton = await page.$$('li.disabled[title="صفحه بعدی"]')
     if (disabledNextButton.length !== 0) break
@@ -48,11 +48,98 @@ export const getCodalFinancialLinks = async ({ symbol }) => {
   return results
 }
 
+// scrap financial infos
+const scrapCodal = async ({ url }) => {
+  try {
+    const page = await goToPage({ url })
+
+    // get page data
+    const {
+      companySymbol,
+      companyName,
+      ISIC,
+      date,
+      period,
+      audited,
+      corrected,
+      letterSerial,
+      listedCapital,
+      unauthorizedCapital,
+      selectValue
+    } = await page.evaluate(() => {
+      const correctedElement = document.getElementById('ctl00_cphBody_ucNavigateToNextPrevLetter_hlPrevVersion')
+      const corrected = correctedElement ? `${correctedElement.innerText} : ${correctedElement.href}` : 'empty'
+
+      return {
+        companySymbol: document.getElementById('ctl00_txbSymbol').innerText,
+        companyName: document.getElementById('ctl00_txbCompanyName').innerText,
+        ISIC: document.getElementById('ctl00_lblISIC').innerText,
+        date:  document.getElementById('ctl00_lblPeriodEndToDate').innerText,
+        period: document.getElementById('ctl00_lblPeriod').innerText,
+        audited: document.getElementById('ctl00_lblIsAudited').innerText,
+        corrected,
+        letterSerial: new window.URL(window.location).searchParams.get('LetterSerial'),
+        listedCapital: document.getElementById('ctl00_lblListedCapital').innerText,
+        unauthorizedCapital: document.getElementById('ctl00_txbUnauthorizedCapital').innerText,
+        selectValue: document.getElementById('ddlTable').value
+      }
+    })
+
+    if (selectValue !== '0') {
+      await page.select('#ddlTable', '0')
+      await page.waitFor(1500)
+    }
+
+    console.log('get financialStatementTableData data')
+
+    // get table raw data or html
+    await page.addScriptTag({ content: `${extractTableFromCodal}`})
+    const financialStatementTableData = await page.evaluate(() => { return extractTableFromCodal() })
+
+    const financialStatement = prettifyCodalJson(convertCodalHTMLTableToJson({ html: financialStatementTableData, date }))
+    const financialStatementLink = page.url()
+
+    console.log('get income statement')
+    // now get income statement
+    await page.select('#ddlTable', '1')
+    await page.waitFor(1500)
+
+    await page.addScriptTag({ content: `${extractTableFromCodal}`})
+    const incomeStatementTableData = await page.evaluate(() => { return extractTableFromCodal() })
+
+    const incomeStatement = prettifyCodalJson(convertCodalHTMLTableToJson({html: incomeStatementTableData, date}))
+    const incomeStatementLink = page.url()
+
+    page.close()
+
+    return {
+      companySymbol,
+      companyName,
+      ISIC,
+      date,
+      period,
+      audited,
+      corrected,
+      letterSerial,
+      listedCapital,
+      unauthorizedCapital,
+      financialStatement,
+      financialStatementLink,
+      incomeStatement,
+      incomeStatementLink
+    }
+  } catch (e) {
+    await FinancialErrorService.create({
+      baseURL: url,
+      error: e.toString()
+    })
+
+    throw new Error('Could not scrap')
+  }
+}
+
 // get income statement and financial statement and other useful data
 export const getCodalFinancialInfo = async ({ url }) => {
-  const page = await goToPage({ url })
-
-  // get page data
   const {
     companySymbol,
     companyName,
@@ -64,59 +151,18 @@ export const getCodalFinancialInfo = async ({ url }) => {
     letterSerial,
     listedCapital,
     unauthorizedCapital,
-    selectValue
-  } = await page.evaluate(() => {
-    const correctedElement = document.getElementById('ctl00_cphBody_ucNavigateToNextPrevLetter_hlPrevVersion')
-    const corrected = correctedElement ? `${correctedElement.innerText} : ${correctedElement.href}` : 'empty'
-
-    return {
-      companySymbol: document.getElementById('ctl00_txbSymbol').innerText,
-      companyName: document.getElementById('ctl00_txbCompanyName').innerText,
-      ISIC: document.getElementById('ctl00_lblISIC').innerText,
-      date:  document.getElementById('ctl00_lblPeriodEndToDate').innerText,
-      period: document.getElementById('ctl00_lblPeriod').innerText,
-      audited: document.getElementById('ctl00_lblIsAudited').innerText,
-      corrected,
-      letterSerial: new window.URL(window.location).searchParams.get('LetterSerial'),
-      listedCapital: document.getElementById('ctl00_lblListedCapital').innerText,
-      unauthorizedCapital: document.getElementById('ctl00_txbUnauthorizedCapital').innerText,
-      selectValue: document.getElementById('ddlTable').value
-    }
-  })
-
-  if (selectValue !== '0') {
-    await page.select('#ddlTable', '0')
-    await page.waitFor(1500)
-  }
-
-  console.log('get financialStatementTableData data')
-
-  // get table raw data or html
-  await page.addScriptTag({ content: `${extractTableFromCodal}`})
-  const financialStatementTableData = await page.evaluate(() => { return extractTableFromCodal() })
-
-  const financialStatement = prettifyCodalJson(convertCodalHTMLTableToJson({ html: financialStatementTableData, date }))
-  const financialStatementLink = page.url()
-
-  console.log('get income statement')
-  // now get income statement
-  await page.select('#ddlTable', '1')
-  await page.waitFor(1500)
-
-  await page.addScriptTag({ content: `${extractTableFromCodal}`})
-  const incomeStatementTableData = await page.evaluate(() => { return extractTableFromCodal() })
-
-  const incomeStatement = prettifyCodalJson(convertCodalHTMLTableToJson({html: incomeStatementTableData, date}))
-  const incomeStatementLink = page.url()
-
-  page.close()
+    financialStatement,
+    financialStatementLink,
+    incomeStatement,
+    incomeStatementLink
+  } = await scrapCodal({ url })
 
   // store this company as available companies
   await CompanyService.create({ symbol: companySymbol, name: companyName })
 
   // store financial info
   try {
-    await FinancialService.create(companySymbol, {
+    await FinancialService.create({
       symbol: companySymbol,
       date,
       period,
@@ -132,6 +178,9 @@ export const getCodalFinancialInfo = async ({ url }) => {
       incomeStatement,
       incomeStatementLink
     })
+
+    // now remove from errors
+    if (await FinancialErrorService.findOne({ letterSerial })) await FinancialErrorService.deleteOne({ letterSerial })
 
     return true
   } catch (e) { // store error

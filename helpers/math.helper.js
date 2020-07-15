@@ -15,7 +15,11 @@ export const percentIncrease = (a, b) => {
 }
 
 export const covariance = (X, Y) => {
+  X = X.filter(item => !isNaN(item))
+  Y = Y.filter(item => !isNaN(item))
+
   if (X.length !== Y.length) {
+    console.error(X, Y)
     throw Error('X.length must match Y.length')
   }
 
