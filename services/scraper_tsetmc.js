@@ -124,6 +124,7 @@ export const scrapPriceData = async ({ symbol }) => {
     console.log('get price history')
     const indexData = await getIndexData()
     console.log('got price history')
+    await PriceErrorService.deleteOne({ symbol })
     return await PriceService.create({ symbol, priceHistory, indexData })
   } catch (e) {
     console.error(e)
