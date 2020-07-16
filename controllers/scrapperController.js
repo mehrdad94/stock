@@ -62,7 +62,7 @@ router.post('/prices', asyncWrapper(async ({ body }, res) => {
 
 
   for (let i = 0; i < symbols.length; i++) {
-    const isItInDatabase =  await PriceService.findOne({ symbol })
+    const isItInDatabase =  await PriceService.findOne({ symbol: symbols[i] })
 
     if (!isItInDatabase) priceQueue.push({ symbol: symbols[i] })
   }

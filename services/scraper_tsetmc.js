@@ -10,7 +10,6 @@ export const getIndexData = async () => {
     try {
       const requestFinished = async request => {
         if (request.url().includes('t=value')) {
-          console.log('here')
           const response = await request.response()
           const textResponse = await response.text()
 
@@ -97,6 +96,8 @@ const getSymbolPriceData = async ({ symbol }) => {
               count
             }
           }).reverse()
+
+          pricePage.close()
 
           resolve(priceHistory)
         }

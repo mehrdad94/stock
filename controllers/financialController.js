@@ -17,7 +17,7 @@ router.post('/prices', asyncWrapper(async ({ body }, res) => {
   res.json(await PriceService.findAll(body))
 }))
 
-// POST api/finance/companies
+// GET api/finance/companies
 router.get('/companies', asyncWrapper(async (req, res) => {
   res.json(await CompanyService.getAll())
 }))

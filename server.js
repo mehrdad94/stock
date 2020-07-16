@@ -22,6 +22,9 @@ mongoose.connect(mongoURL)
 app.use('/api/finance', financialController)
 app.use('/api/scrapper', scrapperController)
 
+// for testing purposes
+app.get('/', (req, res) => res.send('Hello World!'))
+
 // run server
 const serverPort = process.env.PORT
 
