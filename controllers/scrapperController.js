@@ -53,7 +53,8 @@ router.post('/prices', asyncWrapper(async ({ body }, res) => {
 
     symbols = getFinancialLinksThatHasError.map(financial => financial.symbol)
   } else {
-    symbols.push(symbol)
+    if (isArray(symbol)) symbols.push(...symbol)
+    else symbols.push(symbol)
   }
 
   const priceQueue = queue(asyncify(async function (task) {

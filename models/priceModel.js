@@ -66,10 +66,12 @@ export const priceSchema = new Schema({
   returnOnRisk: {
     type: Schema.Types.Mixed,
     default: function () {
-      return this.meanFiveReturns.map(returns => {
+      return this.meanFiveReturns.reduce((acc, returns) => {
         const risk = this.risk.find(item => item[0] === returns[0])[1]
-        return [returns[0], returns[1] / risk]
-      })
+
+        acc[returns[0]] = returns[1] / risk
+        return acc
+      }, {})
     }
   },
   beta: {
